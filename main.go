@@ -11,15 +11,6 @@ import (
 	"github.com/qbressler/stravaApp/configure"
 )
 
-// authentication
-// get code
-//https://www.strava.com/oauth/authorize?client_id=18876&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&scope=read,activity:read
-
-// get bearer token:
-//curl -X POST https://www.strava.com/oauth/token -F client_id=18876 -F client_secret=0d43a7363c7d2ab93ee6f34f2e2a64b11ed38cb8 -F code=0c3117d    18f7ca3b4a1fdbe9c27ee8b0adb8c41ed
-
-//var bearer string = "Bearer cb5f8fad8da1290fb6e36098f4f001d1b51978db"
-
 type AuthResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
