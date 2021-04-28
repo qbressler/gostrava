@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,6 +12,11 @@ import (
 )
 
 var pass string = "0d43a7363c7d2ab93ee6f34f2e2a64b11ed38cb8"
+
+type AuthResponse struct {
+	Token        string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
 
 func main() {
 	http.HandleFunc("/", root)
@@ -20,7 +27,7 @@ func main() {
 
 func root(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>Home page... give all your access to us!</h1>")
-	url := "http://www.strava.com/oauth/authorize?client_id=18876&response_type=code&redirect_uri=http://localhost:8080/exchangeToken?approval_prompt=force&scope=read,activity:read" //todo get URL!
+	url := "http://www.strava.com/oauth/authorize?client_id=18876&response_type=code&redirect_uri=http://192.168.1.147:8080/exchangeToken?approval_prompt=force&scope=read,activity:read" //todo get URL!
 
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 
@@ -56,5 +63,14 @@ func exchangeToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print(err)
 	}
-	log.Print(res)
+	defer res.Body.Close()
+
+	body, _ := ioutil.ReadAll(res.Body)
+	var authResponse AuthResponse
+	err = json.Unmarshal(body, &authResponse)
+	if err != nil {
+		log.Print(err)
+	}
+	log.Print(authResponse)
+
 }
