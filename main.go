@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-var pass string = "0d43a7363c7d2ab93ee6f34f2e2a64b11ed38cb8"
+var pass string = getPass()
 var authUrl string = "http://www.strava.com/oauth/authorize?client_id=18876&response_type=code&redirect_uri=http://localhost:8080/exchangeToken?approval_prompt=force&scope=read,activity:read"
 var bearerToken string
 
@@ -28,6 +28,15 @@ func main() {
 
 }
 
+func getPass() string {
+	fbytes, err := ioutil.ReadFile("settings/thepass.txt")
+	if err != nil {
+		log.Print(err)
+	}
+	log.Println(string(fbytes))
+	return string(fbytes)
+}
+
 func app(w http.ResponseWriter, r *http.Request) {
 	if bearerToken == "" {
 		fmt.Fprint(w, "<h2>You are not authenticated anymore...</h2>")
@@ -39,7 +48,6 @@ func app(w http.ResponseWriter, r *http.Request) {
 			What would you like to do now?
 
 		`, bearerToken)
-		fmt.Fprintf(w, "You are here and your bearer token is %s", bearerToken)
 	}
 }
 func root(w http.ResponseWriter, r *http.Request) {
