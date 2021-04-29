@@ -12,6 +12,8 @@ import (
 )
 
 var pass string = "0d43a7363c7d2ab93ee6f34f2e2a64b11ed38cb8"
+var authUrl string = "http://www.strava.com/oauth/authorize?client_id=18876&response_type=code&redirect_uri=http://localhost:8080/exchangeToken?approval_prompt=force&scope=read,activity:read"
+var bearerToken string
 
 type AuthResponse struct {
 	Token        string `json:"access_token"`
@@ -21,15 +23,28 @@ type AuthResponse struct {
 func main() {
 	http.HandleFunc("/", root)
 	http.HandleFunc("/exchangeToken", exchangeToken)
+	http.HandleFunc("/app", app)
 	http.ListenAndServe(":8080", nil)
 
 }
 
+func app(w http.ResponseWriter, r *http.Request) {
+	if bearerToken == "" {
+		fmt.Fprint(w, "<h2>You are not authenticated anymore...</h2>")
+	} else {
+
+		fmt.Fprintf(w, `
+			<h1>Welcome to the app</h1>
+			You have a bearer token...and that token is... %s<br />
+			What would you like to do now?
+
+		`, bearerToken)
+		fmt.Fprintf(w, "You are here and your bearer token is %s", bearerToken)
+	}
+}
 func root(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>Home page... give all your access to us!</h1>")
-	url := "http://www.strava.com/oauth/authorize?client_id=18876&response_type=code&redirect_uri=http://192.168.1.147:8080/exchangeToken?approval_prompt=force&scope=read,activity:read" //todo get URL!
-
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, authUrl, http.StatusTemporaryRedirect)
 
 }
 
@@ -66,11 +81,17 @@ func exchangeToken(w http.ResponseWriter, r *http.Request) {
 	defer res.Body.Close()
 
 	body, _ := ioutil.ReadAll(res.Body)
+
+	// build authResponse struct{}
 	var authResponse AuthResponse
 	err = json.Unmarshal(body, &authResponse)
 	if err != nil {
 		log.Print(err)
 	}
 	log.Print(authResponse)
+
+	bearerToken = authResponse.Token
+
+	http.Redirect(w, r, "/app", http.StatusTemporaryRedirect)
 
 }
